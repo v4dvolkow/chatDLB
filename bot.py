@@ -19,7 +19,7 @@ user_messages = {}
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     await update.message.reply_text(
-        f"Привет, {user.first_name}! Чем могу помочь?"
+        f"Привет, {user.first_name}! Че надо?"
     )
 
 # Обработка текстовых сообщений
@@ -93,41 +93,21 @@ async def admin_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Вы не администратор.")
         return
 
-    # Если администратор отправляет ссылку на изображение
-    if update.message.text and update.message.text.startswith("/reply"):
-        try:
-            # Формат команды: /reply <user_id> <ссылка на изображение>
-            _, user_id, image_url = update.message.text.split()
-            user_id = int(user_id)
+    # Формат команды: /reply <user_id> <текст ответа>
+    try:
+        # Разделяем сообщение на user_id и текст ответа
+        _, user_id, *reply_text = update.message.text.split(maxsplit=2)
+        user_id = int(user_id)
+        reply_text = " ".join(reply_text)
 
-            if user_id in user_messages:
-                # Загружаем изображение по ссылке
-                response = requests.get(image_url)
-                if response.status_code == 200:
-                    # Отправляем изображение пользователю
-                    await context.bot.send_photo(chat_id=user_id, photo=response.content)
-                    await update.message.reply_text("Изображение отправлено пользователю.")
-                else:
-                    await update.message.reply_text("Не удалось загрузить изображение по ссылке.")
-            else:
-                await update.message.reply_text("Пользователь не найден.")
-        except (ValueError, IndexError):
-            await update.message.reply_text("Ошибка. Используйте формат: /reply <user_id> <ссылка на изображение>")
-    else:
-        # Если это не команда /reply, отправляем текст пользователю
-        try:
-            # Формат: <user_id> <текст ответа>
-            user_id, *reply_text = update.message.text.split(maxsplit=1)
-            user_id = int(user_id)
-            reply_text = " ".join(reply_text)
-
-            if user_id in user_messages:
-                await context.bot.send_message(chat_id=user_id, text=f"Ответ от администратора:\n{reply_text}")
-                await update.message.reply_text("Ответ отправлен пользователю.")
-            else:
-                await update.message.reply_text("Пользователь не найден.")
-        except (ValueError, IndexError):
-            await update.message.reply_text("Ошибка. Используйте формат: <user_id> <текст ответа>")
+        if user_id in user_messages:
+            # Отправляем ответ пользователю
+            await context.bot.send_message(chat_id=user_id, text=f"Ответ от администратора:\n{reply_text}")
+            await update.message.reply_text("Ответ отправлен пользователю.")
+        else:
+            await update.message.reply_text("Пользователь не найден.")
+    except (ValueError, IndexError):
+        await update.message.reply_text("Ошибка. Используйте формат: /reply <user_id> <текст ответа>")
 
 # Основная функция
 def main():
