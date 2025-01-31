@@ -19,7 +19,7 @@ user_messages = {}
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     await update.message.reply_text(
-        f"Привет, {user.first_name}! че надо?."
+        f"Привет, {user.first_name}! Чем могу помочь?"
     )
 
 # Обработка текстовых сообщений
@@ -114,8 +114,20 @@ async def admin_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except (ValueError, IndexError):
             await update.message.reply_text("Ошибка. Используйте формат: /reply <user_id> <ссылка на изображение>")
     else:
-        # Если это не команда /reply, игнорируем
-        await update.message.reply_text("Используйте команду /reply для ответа пользователю.")
+        # Если это не команда /reply, отправляем текст пользователю
+        try:
+            # Формат: <user_id> <текст ответа>
+            user_id, *reply_text = update.message.text.split(maxsplit=1)
+            user_id = int(user_id)
+            reply_text = " ".join(reply_text)
+
+            if user_id in user_messages:
+                await context.bot.send_message(chat_id=user_id, text=f"Ответ от администратора:\n{reply_text}")
+                await update.message.reply_text("Ответ отправлен пользователю.")
+            else:
+                await update.message.reply_text("Пользователь не найден.")
+        except (ValueError, IndexError):
+            await update.message.reply_text("Ошибка. Используйте формат: <user_id> <текст ответа>")
 
 # Основная функция
 def main():
