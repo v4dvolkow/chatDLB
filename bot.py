@@ -102,7 +102,7 @@ async def admin_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if user_id in user_messages:
             # Отправляем ответ пользователю
-            await context.bot.send_message(chat_id=user_id, text=f"Ответ от администратора:\n{reply_text}")
+            await context.bot.send_message(chat_id=user_id, text=f"{reply_text}")
             await update.message.reply_text("Ответ отправлен пользователю.")
         else:
             await update.message.reply_text("Пользователь не найден.")
